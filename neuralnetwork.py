@@ -191,8 +191,8 @@ if __name__ == '__main__':
     #初始化权重
     network = init_nextwork()
     #输入值,应该是列向量，方便起见，设为行向量，注意转换。
-    x = [[0.1,0.1,0.1],[0.9,0.9,0.9],[0.2,0.2,0.2],[0.3,0.3,0.3],[0.4,0.4,0.4]]
-    y = [[0.1],[0.9],[0.2],[0.3],[0.4]]
+    x = [[0.1,0.1,0.1]]
+    y = [[0.1]]
     # m数据个数
     m = len(x)
     flage :int = 0
@@ -211,6 +211,6 @@ if __name__ == '__main__':
         for i in range(3):
             network[i+1] = Matrix_addition(network[i+1],Matrixa_num(-r,DD[i]))
         # print(network)
-        a[1] = [0.6,0.6,0.6]
+        a[1] = [0.1,0.1,0.1]
     print(forward(network,a,11))
 
