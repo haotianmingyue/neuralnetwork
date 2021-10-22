@@ -41,9 +41,8 @@ class matrix():
 
     # 矩阵的乘法
     def Matrixa_mul(self,a, b: list):
-        # 这里当b[0]只有一个数时，len方法是用了的
-        # print(b)
         t = [[0] * len(b[0]) for _ in range(len(a))]
+
         for i in range(len(a)):
             for j in range(len(b[0])):
                 tt: int = 0
@@ -78,29 +77,33 @@ class matrix():
         return t
 
 class network():
-    def init_network(
+    def __init__(
             self
             ,l  #输入行矩阵第一行代表输入节点个数，最后一行代表输出节点个数，中间代表隐层层数和每层个数
             , learningrate
-    ):
-        net = list() # 整个网络架构
+    ):   #初始化网络  类成员有 net 每层的值， w整个的权重，delta 每层的误差，der 每层的导数
+        self.net = list() # 整个网络架构,每层节点的值
         for i in range(len(l)):
-            net.append([[0] for _ in range(l[i])])
+            self.net.append([[0] for _ in range(l[i])])
 
-        w = list() #权重矩阵 一共有 len(l)-1个变量
+        self.w = list() #权重矩阵 一共有 len(l)-1个变量
         for i in range(1,len(l)):
-            w.append([[0] * l[i-1] for _ in range(l[i])])
+            self.w.append([[0] * l[i-1] for _ in range(l[i])])
 
-        delta = copy.deepcopy(w)
-        der = copy.deepcopy(w)
+        self.delta = copy.deepcopy(self.w)
+        self.der = copy.deepcopy(self.w)
 
-        for i in range(len(w)):
+        for i in range(len(self.w)):
             for j in range(l[i+1]):
                 for k in range(l[i]):
-                    w[i][j][k] = random.random()
+                    self.w[i][j][k] = random.random()
+        self.lr = learningrate
 
-        lr = learningrate
-        return net,w,lr,delta,der
+
+    def fit(self,x):
+        self.forward(self.w,x)
+
+        pass
 
     # 迭代次数多了 y急速减小。。。会无限小。。
     def sigmoid(self,w):
@@ -115,16 +118,23 @@ class network():
 
     def forward(self,w, x):
 
-        b = sigmoid(Matrixa_mul(w[0], x))
-        c = sigmoid(Matrixa_mul(w[1], b))
-        y = sigmoid(Matrixa_mul(w[2], c))
-        return b, c, y
+        self.net[0] = x
+        m = matrix()
+        for i in range(1,len(self.net)):
+            self.net[i] = self.sigmoid(m.Matrixa_mul(w[i-1], self.net[i-1]))
+
+
+
+    def backward(self):
+
+
+        pass
 
 
 
 class layers():
 
-    def backward(self,d, j):
+    def count_dlter(self,d, j):
         d[3] = Matrix_sub(y, yy[j])
         d[2] = Matrixa_dot(Matrixa_dot(Matrixa_mul(transpose(w[2]), d[3]), c), Matrix_sub(one_matrixa(c, 1), c))
         d[1] = Matrixa_dot(Matrixa_dot(Matrixa_mul(transpose(w[1]), d[2]), c), Matrix_sub(one_matrixa(b, 1), b))
@@ -162,10 +172,14 @@ def loss(y,j):
 
 
 if __name__ == '__main__':
-    net= network()
+    # d,w,lr,delta,der =
+    net = network([3,3,4,5],0.4)
     #d代表每层激活后的值，w代表权重矩阵，lr代表学习率，delta代表每层误差，der代表每层导数
-    d,w,lr,delta,der = net.init_network([3,3,4,5],0.4)
-    print(w)
+
+    net.fit([[1],[1],[1]])
+
+    # xx = list()  #输入数据
+    # yy = list()  #输出数据
 
 
 
