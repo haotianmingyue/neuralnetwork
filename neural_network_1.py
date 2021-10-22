@@ -126,7 +126,7 @@ def one_matrixa(a,n):
 def backward(d,j):
     d[3] = Matrix_sub(y,yy[j])
     d[2] = Matrixa_dot(Matrixa_dot(Matrixa_mul(transpose(w[2]),d[3]),c),Matrix_sub(one_matrixa(c,1),c))
-    d[1] = Matrixa_dot(Matrixa_dot(Matrixa_mul(transpose(w[1]),d[2]),c),Matrix_sub(one_matrixa(b,1),b))
+    d[1] = Matrixa_dot(Matrixa_dot(Matrixa_mul(transpose(w[1]),d[2]),b),Matrix_sub(one_matrixa(b,1),b))
 
     pass
 

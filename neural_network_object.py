@@ -11,6 +11,7 @@ import math
 
 
 class matrix():
+
     # 矩阵的转置
     def transpose(self,t):
         # 原先矩阵行数
@@ -52,7 +53,7 @@ class matrix():
         return t
 
     # 矩阵的点乘，对应元素相乘
-    def Matrixa_dot(self,a, b: list):
+    def Matrixa_element_wise(self,a, b: list):
         t = [[0] * len(a[0]) for _ in range(len(a))]
         for i in range(len(a)):
             for j in range(len(a[0])):
@@ -81,7 +82,7 @@ class network():
             self
             ,l  #输入行矩阵第一行代表输入节点个数，最后一行代表输出节点个数，中间代表隐层层数和每层个数
             , learningrate
-    ):   #初始化网络  类成员有 net 每层的值， w整个的权重，delta 每层的误差，der 每层的导数
+    ):   #初始化网络  类成员有 net 每层的值， w整个的权重，delta 每层的误差，der_t 每层的导数 der每组数据的导数和
         self.net = list() # 整个网络架构,每层节点的值
         for i in range(len(l)):
             self.net.append([[0] for _ in range(l[i])])
@@ -90,8 +91,9 @@ class network():
         for i in range(1,len(l)):
             self.w.append([[0] * l[i-1] for _ in range(l[i])])
 
-        self.delta = copy.deepcopy(self.w)
-        self.der = copy.deepcopy(self.w)
+        self.delta = copy.deepcopy(self.net)
+        self.der = copy.deepcopy(self.w) #每组导数和
+        self.der_t = copy.deepcopy(self.w) #一组的导数
 
         for i in range(len(self.w)):
             for j in range(l[i+1]):
@@ -100,11 +102,25 @@ class network():
         self.lr = learningrate
 
 
-    def fit(self,x):
-        self.forward(self.w,x)
+    def fit(self,x,y):
+        layer = layers()
+        m = len(x)
+        for i in range(m):
+            self.forward(self.w,x[i])
+            self.backward(y[i])
+            print(self.loss(self.net,y[i]))
+        layer.gradient_descent(m,self.w,self.der,self.der_t,0.7,self.lr)
 
-        pass
+        # print(self.w)
 
+    #预测函数
+    def predict(self,x):
+        for i in range(len(x)):
+            self.forward(self.w,x[i])
+            print(self.net[-1])
+
+
+    #激活函数
     # 迭代次数多了 y急速减小。。。会无限小。。
     def sigmoid(self,w):
         try:
@@ -117,103 +133,55 @@ class network():
             print(w)
 
     def forward(self,w, x):
-
         self.net[0] = x
         m = matrix()
         for i in range(1,len(self.net)):
             self.net[i] = self.sigmoid(m.Matrixa_mul(w[i-1], self.net[i-1]))
 
+    def backward(self,y):
+        layer = layers()
+        layer.count_dlter(self.w,self.delta,self.net,y)
+        layer.partial_derivative(self.der_t,self.delta,self.net)
 
-
-    def backward(self):
-
-
-        pass
-
+    # 损失函数
+    def loss(self,net,y):
+        ls: float = 0
+        for i in range(len(y)):
+            ls += (net[-1][i][0] - y[i][0]) ** 2
+        return ls
 
 
 class layers():
+    m = matrix()
 
-    def count_dlter(self,d, j):
-        d[3] = Matrix_sub(y, yy[j])
-        d[2] = Matrixa_dot(Matrixa_dot(Matrixa_mul(transpose(w[2]), d[3]), c), Matrix_sub(one_matrixa(c, 1), c))
-        d[1] = Matrixa_dot(Matrixa_dot(Matrixa_mul(transpose(w[1]), d[2]), c), Matrix_sub(one_matrixa(b, 1), b))
+    def count_dlter(self,w,delta,net,y):
+        #最后一个误差直接减去y
+        delta[-1] = self.m.Matrix_sub(net[-1], y)
+        for i in range(len(delta)-2,0,-1):
+            delta[i] = self.m.Matrixa_element_wise(self.m.Matrixa_element_wise(self.m.Matrixa_mul(self.m.transpose(w[i]), delta[i+1]), net[i]), self.m.Matrix_sub(self.m.one_matrixa(net[i], 1), net[i]))
 
-        pass
+    def partial_derivative(self,der_t,delta,net):
+        for i in range(len(der_t)):
+            der_t[i] = self.m.Matrix_add(der_t[i], self.m.Matrixa_mul(delta[i+1], self.m.transpose(net[i])))
 
-    def partial_derivative(self,D, j):
-        D[2] = Matrix_add(D[2], Matrixa_mul(d[3], transpose(c)))
-        D[1] = Matrix_add(D[1], Matrixa_mul(d[2], transpose(b)))
-        D[0] = Matrix_add(D[0], Matrixa_mul(d[1], transpose(xx[j])))
-
-        pass
-
-    def gradient_descent(self,m, la):
-        DD[2] = Matrix_add(Matrixa_num(1 / m, D[2]), Matrixa_num(la, w[2]))
-        DD[1] = Matrix_add(Matrixa_num(1 / m, D[1]), Matrixa_num(la, w[1]))
-        DD[0] = Matrix_add(Matrixa_num(1 / m, D[0]), Matrixa_num(la, w[0]))
-
-        w[2] = Matrix_sub(w[2], Matrixa_num(lr, DD[2]))
-        w[1] = Matrix_sub(w[1], Matrixa_num(lr, DD[1]))
-        w[0] = Matrix_sub(w[0], Matrixa_num(lr, DD[0]))
+    def gradient_descent(self,m,w,der,der_t,la,lr):
+        for i in range(len(der)):
+            der[i] = self.m.Matrix_add(self.m.Matrixa_num(1 / m, der_t[i]), self.m.Matrixa_num(la, w[i]))
+        for i in range(len(w)):
+            w[i] = self.m.Matrix_sub(w[i], self.m.Matrixa_num(lr, der[i]))
 
 
 
-
-
-
-#损失函数
-def loss(y,j):
-    ls :float = 0
-
-    for i in range(len(y)):
-        ls += (y[i][0] - yy[j][i][0])**2
-    return ls
 
 
 if __name__ == '__main__':
-    # d,w,lr,delta,der =
+    #初始化数组 第一个数代表输入节点个数最后一数代表输出节点个数，中间代表每个隐层的节点个数
     net = network([3,3,4,5],0.4)
-    #d代表每层激活后的值，w代表权重矩阵，lr代表学习率，delta代表每层误差，der代表每层导数
-
-    net.fit([[1],[1],[1]])
-
-    # xx = list()  #输入数据
-    # yy = list()  #输出数据
+    for i in range(100):
+        net.fit([[[1], [1], [1]]], [[[1], [1], [1], [1], [1]]])
+    net.predict([[[1], [1], [1]]])
 
 
-
-
-
-    # #xx yy 均为列向量
-    # xx = list()
-    # yy = list()
-    #
-    # for i in range(0,100):
-    #
-    #     t = list('{:07b}'.format(i))
-    #     ttt = list()
-    #     for tt in t:
-    #         ttt.append([int(tt)])
-    #     yy.append(ttt)
-    #     xx.append(ttt)
-    #
-    #
-    #
-    # m = len(xx)
-    #
-    # for i in range(1000):
-    #     ls: float = 0
-    #     for j in range(m):
-    #         b,c,y = forward(w,xx[j])
-    #         backward(d,j)
-    #         partial_derivative(D,j)
-    #         ls += loss(y,j)
-    #     print(ls/m)
-    #     gradient_descent(m,0.7)
-    # b,c,y =forward(w,xx[1])
-    # print(y)
-    # print(yy[1])
 
 
 
