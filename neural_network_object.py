@@ -8,6 +8,7 @@
 import copy
 import random
 import math
+from read_iris import read_iris_data
 
 
 class matrix():
@@ -42,6 +43,7 @@ class matrix():
 
     # 矩阵的乘法
     def Matrixa_mul(self,a, b: list):
+        # print('b[0]',b[0])
         t = [[0] * len(b[0]) for _ in range(len(a))]
 
         for i in range(len(a)):
@@ -67,7 +69,7 @@ class matrix():
             for j in range(len(b[0])):
                 t[i][j] = a * b[i][j]
         return t
-
+    #数值为n的列矩阵
     def one_matrixa(self,a, n):
         t = list()
         for i in range(len(a)):
@@ -108,17 +110,19 @@ class network():
         for i in range(m):
             self.forward(self.w,x[i])
             self.backward(y[i])
-            print(self.loss(self.net,y[i]))
+            # print(self.loss(self.net,y[i]))
         layer.gradient_descent(m,self.w,self.der,self.der_t,0.7,self.lr)
 
         # print(self.w)
 
     #预测函数
     def predict(self,x):
+        t = list()
         for i in range(len(x)):
             self.forward(self.w,x[i])
             print(self.net[-1])
-
+            # t.append(self.net[-1])
+        return t
 
     #激活函数
     # 迭代次数多了 y急速减小。。。会无限小。。
@@ -133,6 +137,7 @@ class network():
             print(w)
 
     def forward(self,w, x):
+        # print('x',x)
         self.net[0] = x
         m = matrix()
         for i in range(1,len(self.net)):
@@ -175,11 +180,18 @@ class layers():
 
 
 if __name__ == '__main__':
-    #初始化数组 第一个数代表输入节点个数最后一数代表输出节点个数，中间代表每个隐层的节点个数
-    net = network([3,3,4,5],0.4)
-    for i in range(100):
-        net.fit([[[1], [1], [1]]], [[[1], [1], [1], [1], [1]]])
-    net.predict([[[1], [1], [1]]])
+    #初始化数组 第一个数代表输入节点个数最后一数代表输出节点个数，中间代表每个隐层的节点个数，最后一个代表学习率
+    net = network([4,4,4,3],0.4)
+    x,y = read_iris_data()
+    for i in range(1000):
+        # print(x,y[i])
+        #其中x，y为整个训练集，不要放单个数据
+        net.fit(x, y)
+    # print(y[100],y[22],y[33],y[44],y[123],y[125])
+    #predict接收的是 整个待预测数据集，不要放单个数据
+    # net.predict([x[100],x[22],x[33],x[44],x[123],x[125]])
+    print(net.predict(x))
+
 
 
 

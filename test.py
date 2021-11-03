@@ -30,5 +30,7 @@
 # if __name__ == '__main__':
 #     s = Solution()
 #     print(s.waysToSplit(l))
-print(list(bin(100000)))
-print(	list('{:013b}'.format(100)))
+# print(list(bin(100000)))
+# print(	list('{:013b}'.format(100)))
+from read_iris import read_iris_data
+print(read_iris_data())
